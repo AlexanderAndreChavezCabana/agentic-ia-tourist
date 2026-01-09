@@ -45,3 +45,4 @@ dmypy.json
 logs/
 *.log
 .env.local
+venv/

@@ -6,14 +6,13 @@ from typing import Optional, Dict, Any
 from abc import ABC, abstractmethod
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.language_model import BaseLanguageModel
 
 
 class LLMClient(ABC):
     """Clase base para clientes LLM"""
     
     @abstractmethod
-    def get_model(self) -> BaseLanguageModel:
+    def get_model(self) -> Any:
         """Obtener instancia del modelo"""
         pass
 
@@ -33,7 +32,7 @@ class GoogleAIClient(LLMClient):
         self.max_tokens = max_tokens
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
     
-    def get_model(self) -> BaseLanguageModel:
+    def get_model(self) -> Any:
         return ChatGoogleGenerativeAI(
             model=self.model_name,
             temperature=self.temperature,
@@ -59,7 +58,7 @@ class LLMFactory:
         return client_class(**kwargs)
     
     @classmethod
-    def get_model(cls, provider: str, **kwargs) -> BaseLanguageModel:
+    def get_model(cls, provider: str, **kwargs) -> Any:
         """Obtener modelo LLM directo"""
         client = cls.create_client(provider, **kwargs)
         return client.get_model()

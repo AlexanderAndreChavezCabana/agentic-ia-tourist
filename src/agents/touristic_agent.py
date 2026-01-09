@@ -2,8 +2,7 @@
 Agente Turístico con capacidades AgentIC
 """
 from typing import Optional, List, Dict, Any
-from langchain_core.language_model import BaseLanguageModel
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.memory import ConversationBufferMemory
 from src.handlers.tools import (
@@ -21,7 +20,7 @@ from src.prompt_engineering.prompts import PromptManager
 class TouristicAgent:
     """Agente turístico con capacidades agénticas"""
     
-    def __init__(self, llm: BaseLanguageModel, max_iterations: int = 10):
+    def __init__(self, llm: Any, max_iterations: int = 10):
         """
         Inicializar el agente turístico.
         
@@ -47,30 +46,16 @@ class TouristicAgent:
             create_daily_itinerary
         ]
     
-    def _create_agent_executor(self) -> AgentExecutor:
+    def _create_agent_executor(self) -> Any:
         """Crear el ejecutor del agente"""
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", PromptManager.get_system_prompt()),
-            ("placeholder", "{chat_history}"),
-            ("human", "{input}"),
-            ("placeholder", "{agent_scratchpad}")
-        ])
-        
-        agent = create_tool_calling_agent(
+        # Crear agente reactivo con herramientas
+        agent = create_react_agent(
             self.llm,
             self.tools,
-            prompt
+            state_modifier=PromptManager.get_system_prompt()
         )
         
-        executor = AgentExecutor(
-            agent=agent,
-            tools=self.tools,
-            verbose=True,
-            max_iterations=self.max_iterations,
-            handle_parsing_errors=True
-        )
-        
-        return executor
+        return agent
     
     def process_query(self, user_input: str) -> Dict[str, Any]:
         """
@@ -83,21 +68,31 @@ class TouristicAgent:
             Respuesta del agente
         """
         try:
+            # Invocar el agente
             response = self.agent_executor.invoke({
                 "input": user_input,
-                "chat_history": self.memory.buffer
+                "messages": []
             })
+            
+            # Extraer la respuesta
+            output_text = ""
+            if isinstance(response, dict) and "output" in response:
+                output_text = response["output"]
+            elif isinstance(response, str):
+                output_text = response
+            else:
+                output_text = str(response)
             
             # Guardar en memoria
             self.memory.save_context(
                 {"input": user_input},
-                {"output": response.get("output", "")}
+                {"output": output_text}
             )
             
             return {
                 "success": True,
-                "response": response.get("output", ""),
-                "tool_calls": response.get("tool_calls", [])
+                "response": output_text,
+                "tool_calls": []
             }
         
         except Exception as e:
@@ -136,7 +131,7 @@ class AgentBuilder:
     
     @staticmethod
     def create_agent(
-        llm: BaseLanguageModel,
+        llm: Any,
         agent_type: str = "standard",
         max_iterations: int = 10
     ) -> TouristicAgent:
