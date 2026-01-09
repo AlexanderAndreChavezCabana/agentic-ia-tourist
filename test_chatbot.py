@@ -43,7 +43,7 @@ try:
     print("\n✓ Inicializando Google AI (Gemini)...")
     llm = LLMFactory.get_model(
         "google",
-        model_name="gemini-pro",
+        model_name="gemini-2.5-flash",
         temperature=0.7,
         max_tokens=2048
     )

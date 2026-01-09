@@ -4,8 +4,12 @@ Aplicación Principal del Chatbot Turístico
 import sys
 from pathlib import Path
 
+# Cargar variables de entorno
+from dotenv import load_dotenv
+load_dotenv()
+
 # Agregar el directorio raíz al path
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 from src.llm.base import LLMFactory
@@ -161,7 +165,7 @@ def main():
     """Función principal"""
     try:
         # Crear instancia del chatbot
-        chatbot = ChatbotTouristico(llm_provider="openai")
+        chatbot = ChatbotTouristico(llm_provider="google")
         
         # Iniciar conversación interactiva
         chatbot.start_conversation()

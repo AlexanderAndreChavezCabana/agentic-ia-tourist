@@ -4,7 +4,6 @@ Agente Turístico con capacidades AgentIC
 from typing import Optional, List, Dict, Any
 from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.memory import ConversationBufferMemory
 from src.handlers.tools import (
     search_attractions,
     get_attraction_details,
@@ -31,7 +30,8 @@ class TouristicAgent:
         self.llm = llm
         self.max_iterations = max_iterations
         self.tools = self._setup_tools()
-        self.memory = ConversationBufferMemory(memory_key="chat_history")
+        self.conversation_history: List[Dict[str, str]] = []
+        self.user_context: Dict[str, Any] = {}
         self.agent_executor = self._create_agent_executor()
     
     def _setup_tools(self) -> List:
@@ -49,10 +49,10 @@ class TouristicAgent:
     def _create_agent_executor(self) -> Any:
         """Crear el ejecutor del agente"""
         # Crear agente reactivo con herramientas
+        # create_react_agent solo acepta model y tools como argumentos principales
         agent = create_react_agent(
             self.llm,
-            self.tools,
-            state_modifier=PromptManager.get_system_prompt()
+            self.tools
         )
         
         return agent
@@ -68,26 +68,41 @@ class TouristicAgent:
             Respuesta del agente
         """
         try:
-            # Invocar el agente
+            # Invocar el agente con formato correcto para LangGraph
+            # create_react_agent espera: {"messages": [HumanMessage(content=...)]}
+            from langchain_core.messages import HumanMessage
+            
             response = self.agent_executor.invoke({
-                "input": user_input,
-                "messages": []
+                "messages": [HumanMessage(content=user_input)]
             })
             
-            # Extraer la respuesta
+            # Extraer la respuesta del último mensaje
             output_text = ""
-            if isinstance(response, dict) and "output" in response:
-                output_text = response["output"]
+            if isinstance(response, dict) and "messages" in response:
+                # Obtener el último mensaje que no sea del usuario
+                messages = response["messages"]
+                if messages:
+                    last_message = messages[-1]
+                    # Manejar diferentes formatos de contenido
+                    if hasattr(last_message, 'content'):
+                        content = last_message.content
+                        # Si es una lista de dicts (formato de Google), extraer el texto
+                        if isinstance(content, list) and len(content) > 0 and isinstance(content[0], dict):
+                            output_text = content[0].get('text', str(content))
+                        else:
+                            output_text = str(content)
+                    else:
+                        output_text = str(last_message)
             elif isinstance(response, str):
                 output_text = response
             else:
                 output_text = str(response)
             
-            # Guardar en memoria
-            self.memory.save_context(
-                {"input": user_input},
-                {"output": output_text}
-            )
+            # Guardar en historial de conversación
+            self.conversation_history.append({
+                "user": user_input,
+                "assistant": output_text
+            })
             
             return {
                 "success": True,
@@ -104,11 +119,14 @@ class TouristicAgent:
     
     def get_conversation_history(self) -> str:
         """Obtener historial de conversación"""
-        return self.memory.buffer
+        history_text = ""
+        for exchange in self.conversation_history:
+            history_text += f"Usuario: {exchange['user']}\nAsistente: {exchange['assistant']}\n\n"
+        return history_text
     
     def clear_memory(self) -> None:
         """Limpiar la memoria de conversación"""
-        self.memory.clear()
+        self.conversation_history = []
     
     def set_user_context(self, context: Dict[str, Any]) -> None:
         """
@@ -120,10 +138,10 @@ class TouristicAgent:
         """
         self.user_context = context
         context_msg = f"Contexto del usuario: {context}"
-        self.memory.save_context(
-            {"input": "Información del usuario"},
-            {"output": context_msg}
-        )
+        self.conversation_history.append({
+            "user": "Información del usuario",
+            "assistant": context_msg
+        })
 
 
 class AgentBuilder:

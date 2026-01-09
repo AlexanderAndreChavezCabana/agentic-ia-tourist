@@ -5,7 +5,6 @@ models:
     model_name: "gemini-2.5-flash"
     temperature: 0.7
     max_tokens: 2048
-    top_p: 0.9
 
 # Modelo por defecto
 default_model: "google"
