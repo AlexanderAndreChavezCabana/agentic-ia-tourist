@@ -1,0 +1,41 @@
+# Configuración del Agente Turístico
+agent:
+  name: "Guía Turístico Huaraz IA"
+  description: "Asistente inteligente especializado en turismo en Huaraz, Perú"
+  language: "es"
+  max_iterations: 10
+  max_execution_time: 60
+
+# Herramientas disponibles para el agente
+tools:
+  search_attractions:
+    enabled: true
+    description: "Buscar atracciones turísticas en Huaraz"
+  
+  get_route_info:
+    enabled: true
+    description: "Obtener información sobre rutas y caminos"
+  
+  search_accommodations:
+    enabled: true
+    description: "Buscar alojamientos disponibles"
+  
+  get_weather_info:
+    enabled: true
+    description: "Obtener información del clima"
+  
+  get_activity_recommendations:
+    enabled: true
+    description: "Recomendaciones de actividades por experiencia"
+
+# Configuración de memoria
+memory:
+  type: "conversation_buffer"
+  max_history: 20
+  summary_threshold: 15
+
+# Configuración de búsqueda de conocimiento
+knowledge:
+  use_vector_db: true
+  similarity_threshold: 0.7
+  top_k_results: 5
