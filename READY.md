@@ -85,7 +85,7 @@ print(response)
 
 Tu API Key está configurada en `.env`:
 ```
-GOOGLE_API_KEY=AIzaSyAT-d6WQDtRQeqyZpglpgYBCZNplnLaGDM
+GOOGLE_API_KEY=<tu_api_key_aqui>
 DEFAULT_LLM_PROVIDER=gemini-2.5-flash
 ```
 
