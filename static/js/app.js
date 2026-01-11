@@ -353,15 +353,20 @@ function formatMessageContent(content) {
     // Convert line breaks to <br>
     content = content.replace(/\n/g, '<br>');
     
+    // Convertir enlaces Markdown [texto](url) a HTML antes que nada
+    content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
     // Bold text **text**
     content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     
     // Italic text *text*
     content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
     
-    // Convertir enlaces HTML (mantener tags <a> intactos)
-    // Esto preserva los enlaces tour-link que vienen del backend
-    // No hacemos nada aquí porque el contenido ya viene con HTML
+    // Convertir títulos ### a <h4>
+    content = content.replace(/###\s+(.*?)<br>/g, '<h4>$1</h4>');
+    
+    // Convertir URLs sueltas a enlaces (que no estén ya dentro de <a>)
+    content = content.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
     
     // Lists (simple detection)
     if (content.includes('- ') || content.includes('• ')) {
@@ -382,9 +387,9 @@ function formatMessageContent(content) {
                     inList = false;
                 }
                 // No envolver en <p> si ya tiene tags HTML
-                if (line.includes('<a') || line.includes('<strong>') || line.includes('<em>')) {
+                if (line.includes('<a') || line.includes('<strong>') || line.includes('<em>') || line.includes('<h')) {
                     result.push(line);
-                } else {
+                } else if (line.trim()) {
                     result.push(`<p>${line}</p>`);
                 }
             }
@@ -395,7 +400,7 @@ function formatMessageContent(content) {
     }
     
     // Si ya tiene HTML tags, no envolver en <p>
-    if (content.includes('<a') || content.includes('<strong>') || content.includes('<em>')) {
+    if (content.includes('<a') || content.includes('<strong>') || content.includes('<em>') || content.includes('<h')) {
         return content;
     }
     
