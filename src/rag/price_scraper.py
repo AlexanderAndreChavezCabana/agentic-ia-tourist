@@ -292,8 +292,15 @@ class HuarazPriceScraper:
         else:
             text += f"💰 **Precio**: Consultar disponibilidad\n"
         
+        # Mostrar duración solo si existe y es relevante
         if tour.duration:
-            text += f"⏱️ **Duración**: {tour.duration}\n"
+            # Para trekking/caminatas, solo mostrar si no es genérico
+            if tour.tour_type == "trekking":
+                if tour.duration.lower() not in ['variable', '1 día', 'full day']:
+                    text += f"⏱️ **Duración**: {tour.duration}\n"
+            else:
+                # Para tours y paquetes, siempre mostrar
+                text += f"⏱️ **Duración**: {tour.duration}\n"
         
         if tour.difficulty:
             text += f"📊 **Dificultad**: {tour.difficulty}\n"
@@ -351,7 +358,11 @@ class HuarazPriceScraper:
             summary += "**🥾 TREKKING & CAMINATAS**\n\n"
             for tour in trekking:
                 price_str = tour.price if tour.price else "Consultar"
-                duration_str = f" - {tour.duration}" if tour.duration else ""
+                # Para trekking solo mostrar duración si existe y no es genérica
+                if tour.duration and tour.duration.lower() not in ['variable', '1 día', 'full day']:
+                    duration_str = f" - {tour.duration}"
+                else:
+                    duration_str = ""
                 summary += f"   • **{tour.name}**: {price_str}{duration_str}\n"
             summary += "\n"
         

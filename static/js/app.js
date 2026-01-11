@@ -442,7 +442,7 @@ Puedo ayudarte con:
    • "¿Cómo está el clima hoy en Huaraz?"
    • "¿Qué tours hay disponibles?"
    • "Recomiéndame un itinerario de 3 días"
-
+🔗 **Más información**: <a href="https://www.huarazturismo.com/" target="_blank">www.huarazturismo.com</a>
 ¿En qué puedo ayudarte hoy?`);
 }
 
