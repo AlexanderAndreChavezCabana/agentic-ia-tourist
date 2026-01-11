@@ -13,7 +13,9 @@ from src.handlers.tools import (
     search_accommodations,
     get_best_season,
     get_altitude_advice,
-    create_daily_itinerary
+    create_daily_itinerary,
+    get_current_weather,
+    get_weather_forecast
 )
 from src.handlers.rag_tools import (
     search_web_tourism_info,
@@ -56,6 +58,9 @@ class TouristicAgent:
             get_best_season,
             get_altitude_advice,
             create_daily_itinerary,
+            # Herramientas de clima en tiempo real
+            get_current_weather,
+            get_weather_forecast,
             # Herramientas RAG para búsqueda web
             search_web_tourism_info,
             # Herramientas de scraping de precios (más precisas)

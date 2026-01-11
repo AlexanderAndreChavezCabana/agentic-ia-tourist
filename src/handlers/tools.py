@@ -4,6 +4,9 @@ Herramientas para el Agente Turístico
 from typing import List, Dict, Any, Optional
 from langchain_core.tools import tool
 from data.knowledge.huaraz_knowledge import HuarazKnowledgeBase, Attraction
+import requests
+import os
+from datetime import datetime
 
 
 @tool
@@ -231,3 +234,170 @@ def create_daily_itinerary(attractions: List[str], duration_hours: int) -> Dict[
         "estimated_completion": f"{start_time}:00 aproximadamente",
         "tips": ["Llevar suficiente agua", "Usar protector solar", "Llevar snacks energéticos"]
     }
+
+
+@tool
+def get_current_weather(location: str = "Huaraz") -> str:
+    """
+    Obtiene el clima actual en tiempo real de Huaraz, Perú.
+    Incluye temperatura, sensación térmica, humedad, viento, y descripción del clima.
+    
+    Args:
+        location: Ciudad (default: "Huaraz")
+    
+    Returns:
+        Información detallada del clima actual
+    """
+    try:
+        # API Key de OpenWeatherMap (requiere configuración en .env)
+        api_key = os.getenv("OPENWEATHER_API_KEY")
+        
+        if not api_key:
+            # Información estática si no hay API key
+            return """🌤️ **Clima en Huaraz, Perú**
+
+📍 **Ubicación**: 3,052 msnm
+🌡️ **Temperatura promedio**: 
+   - Día: 18-22°C
+   - Noche: 5-8°C
+
+📅 **Temporadas**:
+- **Temporada Seca** (Mayo - Octubre): ☀️ Días soleados, noches frías. Ideal para trekking.
+- **Temporada de Lluvias** (Noviembre - Abril): 🌧️ Lluvias frecuentes, principalmente por las tardes.
+
+💡 **Recomendación**: Para clima actual en tiempo real, consulta weather.com o configura OPENWEATHER_API_KEY.
+
+⚠️ **Importante**: Por la altitud, la diferencia térmica entre día y noche es significativa. Siempre lleva ropa abrigada."""
+        
+        # Consultar API de OpenWeatherMap
+        base_url = "http://api.openweathermap.org/data/2.5/weather"
+        params = {
+            "q": f"{location},PE",  # PE = Perú
+            "appid": api_key,
+            "units": "metric",  # Celsius
+            "lang": "es"
+        }
+        
+        response = requests.get(base_url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Extraer información
+        temp = data["main"]["temp"]
+        feels_like = data["main"]["feels_like"]
+        temp_min = data["main"]["temp_min"]
+        temp_max = data["main"]["temp_max"]
+        humidity = data["main"]["humidity"]
+        pressure = data["main"]["pressure"]
+        description = data["weather"][0]["description"].capitalize()
+        wind_speed = data["wind"]["speed"]
+        clouds = data["clouds"]["all"]
+        
+        # Obtener hora local
+        now = datetime.now().strftime("%H:%M")
+        
+        # Formatear respuesta
+        weather_info = f"""🌤️ **Clima Actual en {location}, Perú**
+
+⏰ **Hora**: {now}
+🌡️ **Temperatura**: {temp}°C (sensación térmica: {feels_like}°C)
+📊 **Rango**: Min {temp_min}°C / Max {temp_max}°C
+☁️ **Condición**: {description}
+💧 **Humedad**: {humidity}%
+💨 **Viento**: {wind_speed} m/s
+☁️ **Nubosidad**: {clouds}%
+🏔️ **Presión atmosférica**: {pressure} hPa
+
+📍 **Altitud**: 3,052 msnm
+💡 **Consejo**: Por la altitud, lleva siempre ropa abrigada para la noche, incluso si el día está cálido.
+
+🧥 **Qué llevar**:
+{'- Protector solar (radiación UV alta en altura)' if clouds < 50 else '- Impermeable o poncho'}
+- Gorro y bloqueador labial
+- Capas de ropa (sistema de 3 capas)
+- Hidratación constante
+"""
+        
+        return weather_info
+        
+    except requests.exceptions.RequestException as e:
+        return f"""⚠️ No pude obtener el clima en tiempo real. 
+
+🌤️ **Clima Típico en Huaraz**:
+- **Mayo-Oct** (Seco): ☀️ Días soleados 18-22°C, noches frías 5-8°C
+- **Nov-Abr** (Lluvias): 🌧️ Lluvias por la tarde, 15-20°C
+
+💡 Para clima actual, consulta: weather.com o accuweather.com
+
+Error técnico: {str(e)}"""
+    except Exception as e:
+        return f"Error al consultar clima: {str(e)}"
+
+
+@tool 
+def get_weather_forecast(days: int = 3) -> str:
+    """
+    Obtiene el pronóstico del clima para los próximos días en Huaraz.
+    
+    Args:
+        days: Número de días del pronóstico (1-5)
+    
+    Returns:
+        Pronóstico del clima
+    """
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+    
+    if not api_key:
+        return """📅 **Pronóstico General para Huaraz**
+
+**Temporada Seca** (Mayo - Octubre):
+- ☀️ Días: Soleado, 18-22°C
+- 🌙 Noches: Frío, 5-8°C
+- 💧 Lluvias: Mínimas
+
+**Temporada de Lluvias** (Noviembre - Abril):
+- 🌤️ Mañanas: Despejado, 15-18°C
+- 🌧️ Tardes: Lluvias frecuentes
+- ⛈️ Noche: Frío con posible lluvia
+
+💡 Configura OPENWEATHER_API_KEY para pronósticos en tiempo real."""
+    
+    try:
+        base_url = "http://api.openweathermap.org/data/2.5/forecast"
+        params = {
+            "q": "Huaraz,PE",
+            "appid": api_key,
+            "units": "metric",
+            "lang": "es",
+            "cnt": min(days * 8, 40)  # 8 mediciones por día
+        }
+        
+        response = requests.get(base_url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        forecast_text = "📅 **Pronóstico del Clima - Huaraz**\n\n"
+        
+        # Agrupar por día
+        current_date = None
+        for item in data["list"][:days*8]:
+            date = datetime.fromtimestamp(item["dt"]).strftime("%Y-%m-%d")
+            time = datetime.fromtimestamp(item["dt"]).strftime("%H:%M")
+            
+            if date != current_date:
+                current_date = date
+                day_name = datetime.fromtimestamp(item["dt"]).strftime("%A, %d de %B")
+                forecast_text += f"\n**{day_name}**\n"
+            
+            temp = item["main"]["temp"]
+            desc = item["weather"][0]["description"]
+            forecast_text += f"   • {time}: {temp}°C - {desc}\n"
+        
+        forecast_text += "\n💡 **Tip**: En Huaraz el clima puede cambiar rápidamente. Lleva ropa por capas."
+        
+        return forecast_text
+        
+    except Exception as e:
+        return f"Error al obtener pronóstico: {str(e)}"

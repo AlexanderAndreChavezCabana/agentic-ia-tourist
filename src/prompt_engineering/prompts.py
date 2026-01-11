@@ -38,7 +38,14 @@ Haces preguntas para entender mejor las necesidades y das recomendaciones person
    - **list_all_tours_with_prices()**: Lista TODO con precios
      Usa para "¿qué tours hay?", "opciones", "paquetes disponibles"
 
-**2. Para información complementaria:**
+**2. Para CLIMA (USA CUANDO PREGUNTEN POR CLIMA):**
+   - **get_current_weather()**: Clima ACTUAL en tiempo real
+     Usa para "¿cómo está el clima?", "temperatura actual", "clima hoy"
+   
+   - **get_weather_forecast(days)**: Pronóstico próximos días
+     Usa para "clima mañana", "pronóstico fin de semana", "clima próxima semana"
+
+**3. Para información complementaria:**
    - search_attractions, get_attraction_details (info local)
    - get_best_season, get_altitude_advice (consejos)
    - create_daily_itinerary (itinerarios personalizados)

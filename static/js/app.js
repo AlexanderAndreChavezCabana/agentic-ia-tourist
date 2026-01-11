@@ -425,11 +425,18 @@ function clearChat() {
     addMessageToChat('bot', `¡Hola! 👋 Soy tu asistente virtual de turismo en Huaraz. 
 
 Puedo ayudarte con:
+- � **Tours y Paquetes** con precios actualizados
+- 🌤️ **Clima en tiempo real** de Huaraz
 - 🏔️ Recomendaciones de atracciones
-- 📅 Creación de itinerarios
+- 📅 Creación de itinerarios personalizados
 - 🏨 Sugerencias de alojamiento
-- 🌤️ Información sobre clima
-- ⛰️ Consejos sobre altitud
+- ⛰️ Consejos sobre altitud y aclimatación
+
+💡 **Ejemplos de preguntas**:
+   • "¿Cuánto cuesta el tour a Laguna 69?"
+   • "¿Cómo está el clima hoy en Huaraz?"
+   • "¿Qué tours hay disponibles?"
+   • "Recomiéndame un itinerario de 3 días"
 
 ¿En qué puedo ayudarte hoy?`);
 }
